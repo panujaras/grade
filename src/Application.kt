@@ -4,7 +4,6 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.response.*
-import io.ktor.request.*
 import io.ktor.routing.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -20,33 +19,72 @@ fun Application.module() {
     }
 
     install(Routing) {
-        get(path = "/api/grade/user"){
-            val grade = Grade(score = 88,grade = "A")
-            val user = User(success = true,message = "Cal grade success",grade = grade)
+        get(path = "/api/grade/grade") {
+            val grade = Grade(score = 88, grade = "A")
+            val user = GradeResponse(success = true, message = "Cal grade success", grade = grade)
             call.respond(user)
         }
-        get(path = "/api/grade/userInfo"){
+
+        get(path = "/api/grade/grade1") {
             val score = call.parameters["score"]?.toInt()
-            val grade1 = call.parameters["grade"]
+            val gradeResponse = GradeResponse()
 
-            val grade = Grade(score = score ,grade = grade1)
-            val user = User(success = true,message = "Cal grade success",grade = grade)
-            call.respond(user)
+            if (score == null) {
+                gradeResponse.success = false
+                gradeResponse.message = "Please enter score"
+            } else {
+                val grade = Grade(score = score)
+
+//                if (score>=80){
+//                    grade.grade = "A"
+//                }else if (score>=75){
+//                    grade.grade = "B+"
+//                }else if (score>=70){
+//                    grade.grade = "B"
+//                }else if (score>=65){
+//                    grade.grade = "C+"
+//                }else if (score>=60){
+//                    grade.grade = "C"
+//                }else if (score>=55){
+//                    grade.grade = "D+"
+//                }else if (score>=50){
+//                    grade.grade = "D"
+//                }else{
+//                    grade.grade = "F"
+//                }
+
+                when {
+                    score >= 80 -> grade.grade = "A"
+                    score >= 75 -> grade.grade = "B+"
+                    score >= 70 -> grade.grade = "B"
+                    score >= 65 -> grade.grade = "C+"
+                    score >= 60 -> grade.grade = "C"
+                    score >= 55 -> grade.grade = "D+"
+                    score >= 50 -> grade.grade = "D"
+                    else -> grade.grade = "F"
+                }
+
+                gradeResponse.success = true
+                gradeResponse.message = "Cal grade success"
+                gradeResponse.grade = grade
+            }
+
+            call.respond(gradeResponse)
         }
-
-
 
     }
 
 }
-data class User(
-    val success:Boolean? = null,
-    val message:String? = null,
-    val grade:Grade? = null
+
+data class GradeResponse(
+    var success: Boolean? = null,
+    var message: String? = null,
+    var grade: Grade? = null
 
 )
+
 data class Grade(
-    val score:Int? = null,
-    val grade:String? = null
+    val score: Int? = null,
+    var grade: String? = null
 )
 
